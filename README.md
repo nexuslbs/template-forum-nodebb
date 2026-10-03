@@ -20,6 +20,8 @@ Minimal reproducible LOCAL NodeBB forum, built only from official mechanisms.
 ## Prerequisites
 
 - Docker Engine with the Compose v2 plugin (`docker compose version`).
+- `make` for the Quickstart targets below. The scripts also work directly
+  (`scripts/up.sh`, `scripts/bootstrap.sh`, ...) when `make` is not installed.
 - `bash`, `curl`, `jq`, `openssl`. (No Node.js toolchain on the host; NodeBB
   runs inside the container.)
 

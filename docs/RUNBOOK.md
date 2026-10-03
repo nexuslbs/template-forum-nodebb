@@ -1,8 +1,12 @@
 # RUNBOOK: template-forum-nodebb
 
-Operations manual for the LOCAL NodeBB forum template. Every command runs
-through `scripts/*.sh`, which pin the compose project and refuse the protected
-production project `omni-stack`.
+Operations manual for the LOCAL NodeBB forum template. Every lifecycle command
+runs through `scripts/*.sh`, which pin the compose project and refuse the
+protected production project `omni-stack`. The only exceptions are the
+explicitly labelled inspection snippets in this document: `docker stats
+--no-stream` in section 2 and the raw `docker compose ... up -d` invocation in
+section 5, shown only to make the pinned arguments visible. Prefer the script or
+the `make` target for anything that changes state.
 
 ## 1. First boot
 
@@ -126,3 +130,35 @@ the official API.
   template.
 - **topic 404 after restore**: the forum may still be reconnecting; run
   `make verify` again, or `make ps` and check health.
+
+## 8. Production handover (human steps)
+
+The sandbox and production are the SAME stack: the same `docker-compose.yml`,
+the same pinned images, the same named volumes and the same `scripts/*.sh`.
+ONLY `.env` differs. The knobs that differ are:
+
+- `COMPOSE_PROJECT_NAME` (a production project name, never `omni-stack`),
+- `NODEBB_URL` (the real public URL),
+- `NODEBB_BIND_ADDR` / `NODEBB_PORT` (the published bind address and port),
+- the database and admin secrets (`NODEBB_DB_PASSWORD`,
+  `NODEBB_ADMIN_PASSWORD`, `NODEBB_SECRET`),
+- `NODEBB_IMAGE_TAG` if production is pinned to a different tag.
+
+No agent performs the steps below. A NAMED HUMAN performs them, in this order:
+
+1. **Production publish (human approval).** A named human reviews the sandbox
+   result and runs the same scripts against the production `.env`
+   (`scripts/up.sh`, `scripts/bootstrap.sh`, `scripts/apply.sh`,
+   `scripts/verify.sh`), then performs the cutover.
+2. **Real DNS/TLS/domain.** The named human creates the A/AAAA record and runs
+   a reverse proxy or TLS terminator in front of the published bind
+   address:port. NodeBB does not terminate TLS in this image.
+3. **Real admin credentials.** The named human sets
+   `NODEBB_ADMIN_USERNAME`, `NODEBB_ADMIN_EMAIL` and
+   `NODEBB_ADMIN_PASSWORD` to the real owner account.
+4. **Real DB secret and admin password.** The named human stores the generated
+   secrets in the operator's secret store. Never commit them.
+5. **Scheduled backups.** The named human schedules `scripts/backup.sh` with
+   cron or a systemd timer and stores the backups off-host.
+6. **Real email.** NodeBB email is configured through the ACP (or
+   `config.json`); a human wires the real SMTP values.
