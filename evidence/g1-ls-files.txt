@@ -1,0 +1,49 @@
+# G1: git ls-files (the exact committed file set)
+# command: git ls-files
+
+.env.example
+.gitignore
+Makefile
+README.md
+config/config.json.tpl
+config/mongodb-user-init.js.tpl
+config/plugins.json
+docker-compose.override.yml.example
+docker-compose.yml
+docs/RUNBOOK.md
+evidence/README.md
+evidence/g0-manifest.txt
+evidence/g1-gitignore-check.txt
+evidence/g1-ls-files.txt
+evidence/g2-compose-ps.txt
+evidence/g3-api-write.txt
+evidence/g3-setup-build.txt
+evidence/g4-apply.txt
+evidence/g5-logs-stats.txt
+evidence/g6-backup-restore.txt
+evidence/g7-upgrade.txt
+evidence/g8-down-volumes.txt
+evidence/g9-customisation.txt
+scripts/apply.sh
+scripts/backup.sh
+scripts/bootstrap.sh
+scripts/down.sh
+scripts/lib.sh
+scripts/logs.sh
+scripts/migrate.sh
+scripts/ps.sh
+scripts/restore.sh
+scripts/up.sh
+scripts/verify.sh
+
+# count: 34 files
+
+# checks for real secret/state artifacts (expect ZERO HITS in every block):
+# 1. a real .env file (not .env.example)
+   real .env: ZERO HITS
+# 2. runtime/ and backups/ trees
+   runtime/backups: ZERO HITS
+# 3. database dumps and archives
+   dumps/archives: ZERO HITS
+# 4. volume directories
+   volumes: ZERO HITS

@@ -1,0 +1,174 @@
+# G7: image tag bump + official ./nodebb upgrade
+## before: pinned tag and running image
+NODEBB_IMAGE_TAG=4.16.1
+template-forum-nodebb-mongo-1 image=mongo:7-jammy status=Up About a minute (healthy)
+template-forum-nodebb-nodebb-1 image=ghcr.io/nodebb/nodebb:4.16.1 status=Up 27 seconds (healthy)
+topic before: HTTP 200
+## bump NODEBB_IMAGE_TAG 4.16.1 -> 4.16.0 and recreate
+NODEBB_IMAGE_TAG=4.16.0
+[2026-10-03T23:22:12Z] rendered /opt/workspace/tmp/template-forum-nodebb/repo/runtime/config/config.json from /opt/workspace/tmp/template-forum-nodebb/repo/config/config.json.tpl
+[2026-10-03T23:22:12Z] rendered /opt/workspace/tmp/template-forum-nodebb/repo/runtime/mongo/mongodb-user-init.js
+[2026-10-03T23:22:12Z] starting stack (project template-forum-nodebb)
+ Container template-forum-nodebb-mongo-1 Running 
+ Container template-forum-nodebb-nodebb-1 Recreate 
+ Container template-forum-nodebb-nodebb-1 Recreated 
+ Container template-forum-nodebb-mongo-1 Waiting 
+ Container template-forum-nodebb-mongo-1 Healthy 
+ Container template-forum-nodebb-nodebb-1 Starting 
+ Container template-forum-nodebb-nodebb-1 Started 
+[2026-10-03T23:22:16Z] waiting for mongo to become healthy
+[2026-10-03T23:22:16Z] waiting for nodebb to become healthy
+NAME                             IMAGE                          COMMAND                  SERVICE   CREATED          STATUS                    PORTS
+template-forum-nodebb-mongo-1    mongo:7-jammy                  "docker-entrypoint.s…"   mongo     2 minutes ago    Up 2 minutes (healthy)    27017/tcp
+template-forum-nodebb-nodebb-1   ghcr.io/nodebb/nodebb:4.16.0   "tini -- entrypoint.…"   nodebb    35 seconds ago   Up 31 seconds (healthy)   0.0.0.0:4567->4567/tcp
+[2026-10-03T23:22:47Z] up: OK
+## running image after bump
+template-forum-nodebb-mongo-1 image=mongo:7-jammy status=Up 2 minutes (healthy)
+template-forum-nodebb-nodebb-1 image=ghcr.io/nodebb/nodebb:4.16.0 status=Up 31 seconds (healthy)
+## scripts/migrate.sh (official ./nodebb upgrade on 4.16.0)
+[2026-10-03T23:22:47Z] ensuring mongo is healthy
+ Container template-forum-nodebb-mongo-1 Running 
+[2026-10-03T23:22:47Z] official ./nodebb upgrade (package update, dependency/plugin upgrades, schema migrations, asset build)
+Updating NodeBB...
+1. Updating package.json file with defaults...  OK
+2. Bringing base dependencies up to date...  started
+up to date, audited 810 packages in 2s
+141 packages are looking for funding
+  run `npm fund` for details
+4 vulnerabilities (2 moderate, 2 high)
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+Run `npm audit` for details.
+npm warn install-scripts 3 packages have install scripts not yet covered by allowScripts:
+npm warn install-scripts   @parcel/watcher@2.6.0 (install: node-gyp rebuild)
+npm warn install-scripts   cbor-extract@2.2.2 (install: node-gyp rebuild)
+npm warn install-scripts   esbuild@0.28.2 (postinstall: node install.js)
+npm warn install-scripts
+npm warn install-scripts Run `npm install-scripts ls` to review, or `npm install-scripts approve <pkg>` to allow.
+3. Checking installed plugins for updates...Checking installed plugins and themes for updates...   OK
+All packages up-to-date!
+4. Updating NodeBB data store schema...
+Parsing upgrade scripts... 
+OK | 0 script(s) found, 181 skipped
+Schema update complete!
+5. Rebuilding assets...  started
+2026-10-03T23:22:52.204Z [4567/207] - info: [build] Building in series mode
+2026-10-03T23:22:52.205Z [4567/207] - info: [build]         plugin static dirs  build started
+2026-10-03T23:22:52.210Z [4567/207] - info: [build]         plugin static dirs  build completed in 0.005sec
+2026-10-03T23:22:52.210Z [4567/207] - info: [build]          requirejs modules  build started
+2026-10-03T23:22:52.277Z [4567/207] - info: [build]          requirejs modules  build completed in 0.067sec
+2026-10-03T23:22:52.278Z [4567/207] - info: [build]           client js bundle  build started
+2026-10-03T23:22:52.280Z [4567/207] - info: [build]           client js bundle  build completed in 0.003sec
+2026-10-03T23:22:52.280Z [4567/207] - info: [build]            admin js bundle  build started
+2026-10-03T23:22:52.281Z [4567/207] - info: [build]            admin js bundle  build completed in 0.001sec
+2026-10-03T23:22:52.281Z [4567/207] - info: [build]         client side styles  build started
+2026-10-03T23:22:53.440Z [4567/207] - info: [build]         client side styles  build completed in 1.159sec
+2026-10-03T23:22:53.442Z [4567/207] - info: [build] admin control panel styles  build started
+2026-10-03T23:22:54.418Z [4567/207] - info: [build] admin control panel styles  build completed in 0.976sec
+2026-10-03T23:22:54.418Z [4567/207] - info: [build]                  templates  build started
+2026-10-03T23:22:54.992Z [4567/207] - info: [build]                  templates  build completed in 0.574sec
+2026-10-03T23:22:54.992Z [4567/207] - info: [build]                  languages  build started
+2026-10-03T23:22:57.472Z [4567/207] - info: [build]                  languages  build completed in 2.48sec
+2026-10-03T23:22:57.472Z [4567/207] - info: [build] Bundling with Webpack.
+2026-10-03T23:23:04.153Z [4567/207] - info: [build] Bundling took 5793 ms
+2026-10-03T23:23:04.155Z [4567/207] - info: [build] Asset compilation successful. Completed in 11.95sec.
+  NodeBB Upgrade Complete!
+[2026-10-03T23:23:04Z] recreating nodebb on the pinned image
+ Container template-forum-nodebb-mongo-1 Running 
+ Container template-forum-nodebb-nodebb-1 Recreate 
+ Container template-forum-nodebb-nodebb-1 Recreated 
+ Container template-forum-nodebb-mongo-1 Waiting 
+ Container template-forum-nodebb-mongo-1 Healthy 
+ Container template-forum-nodebb-nodebb-1 Starting 
+ Container template-forum-nodebb-nodebb-1 Started 
+NAME                             IMAGE                          COMMAND                  SERVICE   CREATED          STATUS                    PORTS
+template-forum-nodebb-mongo-1    mongo:7-jammy                  "docker-entrypoint.s…"   mongo     3 minutes ago    Up 2 minutes (healthy)    27017/tcp
+template-forum-nodebb-nodebb-1   ghcr.io/nodebb/nodebb:4.16.0   "tini -- entrypoint.…"   nodebb    12 seconds ago   Up 10 seconds (healthy)   0.0.0.0:4567->4567/tcp
+[2026-10-03T23:23:16Z] migrate: OK
+## topic after 4.16.0 upgrade
+HTTP 200
+############################################################
+## equivalent true upgrade: 4.16.0 -> 4.16.1 (the pinned version)
+############################################################
+NODEBB_IMAGE_TAG=4.16.1
+[2026-10-03T23:23:22Z] rendered /opt/workspace/tmp/template-forum-nodebb/repo/runtime/config/config.json from /opt/workspace/tmp/template-forum-nodebb/repo/config/config.json.tpl
+[2026-10-03T23:23:22Z] rendered /opt/workspace/tmp/template-forum-nodebb/repo/runtime/mongo/mongodb-user-init.js
+[2026-10-03T23:23:22Z] starting stack (project template-forum-nodebb)
+ Container template-forum-nodebb-mongo-1 Running 
+ Container template-forum-nodebb-nodebb-1 Recreate 
+ Container template-forum-nodebb-nodebb-1 Recreated 
+ Container template-forum-nodebb-mongo-1 Waiting 
+ Container template-forum-nodebb-mongo-1 Healthy 
+ Container template-forum-nodebb-nodebb-1 Starting 
+ Container template-forum-nodebb-nodebb-1 Started 
+[2026-10-03T23:23:24Z] waiting for mongo to become healthy
+[2026-10-03T23:23:24Z] waiting for nodebb to become healthy
+NAME                             IMAGE                          COMMAND                  SERVICE   CREATED          STATUS                    PORTS
+template-forum-nodebb-mongo-1    mongo:7-jammy                  "docker-entrypoint.s…"   mongo     3 minutes ago    Up 3 minutes (healthy)    27017/tcp
+template-forum-nodebb-nodebb-1   ghcr.io/nodebb/nodebb:4.16.1   "tini -- entrypoint.…"   nodebb    37 seconds ago   Up 36 seconds (healthy)   0.0.0.0:4567->4567/tcp
+[2026-10-03T23:24:00Z] up: OK
+## running image after restoring the pin
+template-forum-nodebb-mongo-1 image=mongo:7-jammy status=Up 3 minutes (healthy)
+template-forum-nodebb-nodebb-1 image=ghcr.io/nodebb/nodebb:4.16.1 status=Up 36 seconds (healthy)
+## scripts/migrate.sh (official ./nodebb upgrade on 4.16.1)
+[2026-10-03T23:24:00Z] ensuring mongo is healthy
+ Container template-forum-nodebb-mongo-1 Running 
+[2026-10-03T23:24:01Z] official ./nodebb upgrade (package update, dependency/plugin upgrades, schema migrations, asset build)
+Updating NodeBB...
+1. Updating package.json file with defaults...  OK
+2. Bringing base dependencies up to date...  started
+up to date, audited 810 packages in 2s
+141 packages are looking for funding
+  run `npm fund` for details
+4 vulnerabilities (2 moderate, 2 high)
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+Run `npm audit` for details.
+npm warn install-scripts 3 packages have install scripts not yet covered by allowScripts:
+npm warn install-scripts   @parcel/watcher@2.6.0 (install: node-gyp rebuild)
+npm warn install-scripts   cbor-extract@2.2.2 (install: node-gyp rebuild)
+npm warn install-scripts   esbuild@0.28.2 (postinstall: node install.js)
+npm warn install-scripts
+npm warn install-scripts Run `npm install-scripts ls` to review, or `npm install-scripts approve <pkg>` to allow.
+3. Checking installed plugins for updates...Checking installed plugins and themes for updates...   OK
+All packages up-to-date!
+4. Updating NodeBB data store schema...
+Parsing upgrade scripts... 
+OK | 0 script(s) found, 181 skipped
+Schema update complete!
+5. Rebuilding assets...  started
+2026-10-03T23:24:05.431Z [4567/233] - info: [build] Building in series mode
+2026-10-03T23:24:05.432Z [4567/233] - info: [build]         plugin static dirs  build started
+2026-10-03T23:24:05.437Z [4567/233] - info: [build]         plugin static dirs  build completed in 0.005sec
+2026-10-03T23:24:05.438Z [4567/233] - info: [build]          requirejs modules  build started
+2026-10-03T23:24:05.527Z [4567/233] - info: [build]          requirejs modules  build completed in 0.089sec
+2026-10-03T23:24:05.527Z [4567/233] - info: [build]           client js bundle  build started
+2026-10-03T23:24:05.530Z [4567/233] - info: [build]           client js bundle  build completed in 0.003sec
+2026-10-03T23:24:05.530Z [4567/233] - info: [build]            admin js bundle  build started
+2026-10-03T23:24:05.532Z [4567/233] - info: [build]            admin js bundle  build completed in 0.002sec
+2026-10-03T23:24:05.532Z [4567/233] - info: [build]         client side styles  build started
+2026-10-03T23:24:07.032Z [4567/233] - info: [build]         client side styles  build completed in 1.5sec
+2026-10-03T23:24:07.032Z [4567/233] - info: [build] admin control panel styles  build started
+2026-10-03T23:24:08.209Z [4567/233] - info: [build] admin control panel styles  build completed in 1.177sec
+2026-10-03T23:24:08.209Z [4567/233] - info: [build]                  templates  build started
+2026-10-03T23:24:08.820Z [4567/233] - info: [build]                  templates  build completed in 0.611sec
+2026-10-03T23:24:08.820Z [4567/233] - info: [build]                  languages  build started
+2026-10-03T23:24:11.246Z [4567/233] - info: [build]                  languages  build completed in 2.426sec
+2026-10-03T23:24:11.246Z [4567/233] - info: [build] Bundling with Webpack.
+2026-10-03T23:24:17.681Z [4567/233] - info: [build] Bundling took 5579 ms
+2026-10-03T23:24:17.682Z [4567/233] - info: [build] Asset compilation successful. Completed in 12.25sec.
+  NodeBB Upgrade Complete!
+[2026-10-03T23:24:17Z] recreating nodebb on the pinned image
+ Container template-forum-nodebb-mongo-1 Running 
+ Container template-forum-nodebb-nodebb-1 Recreate 
+ Container template-forum-nodebb-nodebb-1 Recreated 
+ Container template-forum-nodebb-mongo-1 Waiting 
+ Container template-forum-nodebb-mongo-1 Healthy 
+ Container template-forum-nodebb-nodebb-1 Starting 
+ Container template-forum-nodebb-nodebb-1 Started 
+NAME                             IMAGE                          COMMAND                  SERVICE   CREATED          STATUS                    PORTS
+template-forum-nodebb-mongo-1    mongo:7-jammy                  "docker-entrypoint.s…"   mongo     4 minutes ago    Up 4 minutes (healthy)    27017/tcp
+template-forum-nodebb-nodebb-1   ghcr.io/nodebb/nodebb:4.16.1   "tini -- entrypoint.…"   nodebb    18 seconds ago   Up 15 seconds (healthy)   0.0.0.0:4567->4567/tcp
+[2026-10-03T23:24:35Z] migrate: OK
+## topic after 4.16.1 upgrade
+HTTP 200

@@ -1,0 +1,47 @@
+# G4: plugin + theme installed and activated from config/plugins.json, then ./nodebb build
+# command: scripts/apply.sh
+
+## install (npm install --save inside the container)
+[2026-10-03T23:19:23Z] installing from /opt/workspace/tmp/template-forum-nodebb/repo/config/plugins.json: nodebb-plugin-hashtags@4.0.1 nodebb-theme-harmony@3.3.12
+added 1 package, changed 1 package, and audited 810 packages in 4s
+[2026-10-03T23:19:28Z] activating nodebb-plugin-hashtags
+2026-10-03T23:19:29.700Z [4567/163] - info: Activating plugin `nodebb-plugin-hashtags`
+[2026-10-03T23:19:29Z] activating nodebb-theme-harmony
+2026-10-03T23:19:31.399Z [4567/183] - info: [reset] Theme reset to nodebb-theme-harmony and default skin
+	* nodebb-plugin-hashtags@4.0.1 (installed, enabled)
+	* nodebb-theme-harmony@3.3.12 (installed, enabled)
+
+## activate (official ./nodebb activate)
+[2026-10-03T23:19:23Z] installing from /opt/workspace/tmp/template-forum-nodebb/repo/config/plugins.json: nodebb-plugin-hashtags@4.0.1 nodebb-theme-harmony@3.3.12
+[2026-10-03T23:19:28Z] activating nodebb-plugin-hashtags
+[2026-10-03T23:19:29Z] activating nodebb-theme-harmony
+2026-10-03T23:19:31.399Z [4567/183] - info: [reset] Theme reset to nodebb-theme-harmony and default skin
+	* nodebb-theme-harmony@3.3.12 (installed, enabled)
+	* nodebb-theme-lavender@8.1.2 (installed, disabled)
+	* nodebb-theme-peace@3.1.4 (installed, disabled)
+	* nodebb-theme-persona@15.3.8 (installed, disabled)
+
+## build result
+2026-10-03T23:19:45.372Z [4567/203] - info: [build] Bundling took 5863 ms
+2026-10-03T23:19:45.386Z [4567/203] - info: [build] Asset compilation successful. Completed in 12.494sec.
+
+## active plugins and theme on the running forum (./nodebb plugins)
+Active plugins:
+	* nodebb-plugin-2factor@8.0.11 (installed, disabled)
+	* nodebb-plugin-composer-default@11.0.16 (installed, enabled)
+	* nodebb-plugin-dbsearch@7.0.1 (installed, enabled)
+	* nodebb-plugin-emoji@6.0.19 (installed, enabled)
+	* nodebb-plugin-emoji-android@4.1.1 (installed, enabled)
+	* nodebb-plugin-hashtags@4.0.1 (installed, enabled)
+	* nodebb-plugin-link-preview@2.2.9 (installed, disabled)
+	* nodebb-plugin-markdown@13.2.13 (installed, enabled)
+	* nodebb-plugin-mentions@5.0.5 (installed, enabled)
+	* nodebb-plugin-spam-be-gone@2.3.12 (installed, disabled)
+	* nodebb-plugin-web-push@0.9.6 (installed, enabled)
+	* nodebb-rewards-essentials@1.0.3 (installed, enabled)
+	* nodebb-theme-harmony@3.3.12 (installed, enabled)
+	* nodebb-theme-lavender@8.1.2 (installed, disabled)
+	* nodebb-theme-peace@3.1.4 (installed, disabled)
+	* nodebb-theme-persona@15.3.8 (installed, disabled)
+	* nodebb-widget-essentials@8.0.10 (installed, enabled)
+[2026-10-03T23:19:47Z] apply: OK

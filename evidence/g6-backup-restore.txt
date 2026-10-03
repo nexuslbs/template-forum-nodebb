@@ -1,0 +1,385 @@
+# G6: backup -> down --volumes -> fresh up -> topic 404 -> restore -> topic 200
+
+############################################################
+# 1. BACKUP
+############################################################
+# G6 backup/destroy/restore round trip
+# topic under test: http://172.18.0.1:4567/topic/2/template-smoke-topic-20261003t231853z
+
+## before backup: GET topic
+HTTP 200
+
+## scripts/backup.sh
+[2026-10-03T23:20:02Z] 1/3 mongodump -> /opt/workspace/tmp/template-forum-nodebb/repo/backups/20261003T232002Z/nodebb.archive
+2026-10-03T23:20:02.690+0000	writing `nodebb.objects` to `archive on stdout`
+2026-10-03T23:20:02.691+0000	writing `nodebb.sessions` to `archive on stdout`
+2026-10-03T23:20:02.691+0000	writing `nodebb.searchpost` to `archive on stdout`
+2026-10-03T23:20:02.693+0000	writing `nodebb.searchtopic` to `archive on stdout`
+2026-10-03T23:20:02.696+0000	done dumping `nodebb.searchpost` (2 documents)
+2026-10-03T23:20:02.696+0000	writing `nodebb.searchchat` to `archive on stdout`
+2026-10-03T23:20:02.696+0000	done dumping `nodebb.sessions` (25 documents)
+2026-10-03T23:20:02.698+0000	done dumping `nodebb.objects` (1041 documents)
+2026-10-03T23:20:02.699+0000	done dumping `nodebb.searchtopic` (1 document)
+2026-10-03T23:20:02.709+0000	done dumping `nodebb.searchchat` (0 documents)
+[2026-10-03T23:20:02Z] 2/3 uploads tar -> /opt/workspace/tmp/template-forum-nodebb/repo/backups/20261003T232002Z/uploads.tar.gz
+[2026-10-03T23:20:02Z] 3/3 rendered config -> /opt/workspace/tmp/template-forum-nodebb/repo/backups/20261003T232002Z/config.json
+[2026-10-03T23:20:02Z] wrote 180K to /opt/workspace/tmp/template-forum-nodebb/repo/backups/20261003T232002Z
+total 176
+-rw-r--r-- 1 root root    240 Oct  3 23:20 SHA256SUMS
+-rw-r----- 1 root root    287 Oct  3 23:20 config.json
+-rw-r--r-- 1 root root 167168 Oct  3 23:20 nodebb.archive
+-rw-r--r-- 1 root root    890 Oct  3 23:20 uploads.tar.gz
+[2026-10-03T23:20:02Z] backup: OK
+
+############################################################
+# 2. DESTROY AND FRESH UP
+############################################################
+## scripts/down.sh --volumes
+[2026-10-03T23:20:07Z] down --volumes (deletes mongo-data, nodebb-build, nodebb-uploads)
+ Container template-forum-nodebb-nodebb-1 Stopping 
+ Container template-forum-nodebb-nodebb-1 Stopped 
+ Container template-forum-nodebb-nodebb-1 Removing 
+ Container template-forum-nodebb-nodebb-1 Removed 
+ Container template-forum-nodebb-mongo-1 Stopping 
+ Container template-forum-nodebb-mongo-1 Stopped 
+ Container template-forum-nodebb-mongo-1 Removing 
+ Container template-forum-nodebb-mongo-1 Removed 
+ Volume template-forum-nodebb_nodebb-uploads Removing 
+ Volume template-forum-nodebb_mongo-data Removing 
+ Volume template-forum-nodebb_nodebb-build Removing 
+ Network template-forum-nodebb_nodebbnet Removing 
+ Volume template-forum-nodebb_nodebb-uploads Removed 
+ Volume template-forum-nodebb_nodebb-build Removed 
+ Volume template-forum-nodebb_mongo-data Removed 
+ Network template-forum-nodebb_nodebbnet Removed 
+NAME      IMAGE     COMMAND   SERVICE   CREATED   STATUS    PORTS
+[2026-10-03T23:20:09Z] down: OK
+
+## fresh scripts/up.sh (build volume gone -> START_BUILD=true)
+[2026-10-03T23:20:09Z] rendered /opt/workspace/tmp/template-forum-nodebb/repo/runtime/config/config.json from /opt/workspace/tmp/template-forum-nodebb/repo/config/config.json.tpl
+[2026-10-03T23:20:09Z] rendered /opt/workspace/tmp/template-forum-nodebb/repo/runtime/mongo/mongodb-user-init.js
+[2026-10-03T23:20:09Z] build volume missing: forcing START_BUILD=true so assets are rebuilt
+[2026-10-03T23:20:09Z] starting stack (project template-forum-nodebb)
+ Network template-forum-nodebb_nodebbnet Creating 
+ Network template-forum-nodebb_nodebbnet Creating 
+ Volume template-forum-nodebb_mongo-data Creating 
+ Volume template-forum-nodebb_mongo-data Creating 
+ Volume template-forum-nodebb_nodebb-build Creating 
+ Volume template-forum-nodebb_nodebb-build Creating 
+ Volume template-forum-nodebb_nodebb-uploads Creating 
+ Volume template-forum-nodebb_nodebb-uploads Creating 
+ Volume template-forum-nodebb_mongo-data Created 
+ Volume template-forum-nodebb_mongo-data Created 
+ Volume template-forum-nodebb_nodebb-uploads Created 
+ Volume template-forum-nodebb_nodebb-uploads Created 
+ Volume template-forum-nodebb_nodebb-build Created 
+ Volume template-forum-nodebb_nodebb-build Created 
+ Network template-forum-nodebb_nodebbnet Created 
+ Network template-forum-nodebb_nodebbnet Created 
+ Container template-forum-nodebb-mongo-1 Creating 
+ Container template-forum-nodebb-mongo-1 Created 
+ Container template-forum-nodebb-nodebb-1 Creating 
+ Container template-forum-nodebb-nodebb-1 Created 
+ Container template-forum-nodebb-mongo-1 Starting 
+ Container template-forum-nodebb-mongo-1 Started 
+ Container template-forum-nodebb-mongo-1 Waiting 
+ Container template-forum-nodebb-mongo-1 Healthy 
+ Container template-forum-nodebb-nodebb-1 Starting 
+ Container template-forum-nodebb-nodebb-1 Started 
+[2026-10-03T23:20:24Z] waiting for mongo to become healthy
+[2026-10-03T23:20:24Z] waiting for nodebb to become healthy
+NAME                             IMAGE                          COMMAND                  SERVICE   CREATED          STATUS                    PORTS
+template-forum-nodebb-mongo-1    mongo:7-jammy                  "docker-entrypoint.s…"   mongo     41 seconds ago   Up 31 seconds (healthy)   27017/tcp
+template-forum-nodebb-nodebb-1   ghcr.io/nodebb/nodebb:4.16.1   "tini -- entrypoint.…"   nodebb    41 seconds ago   Up 26 seconds (healthy)   0.0.0.0:4567->4567/tcp
+[2026-10-03T23:20:50Z] up: OK
+
+## after fresh up: GET topic (expect 404 on the empty database)
+HTTP 404
+
+############################################################
+# 3. RESTORE
+############################################################
+## scripts/restore.sh backups/20261003T232002Z/
+[2026-10-03T23:20:54Z] ensuring mongo is up and healthy (restore needs a running database)
+ Container template-forum-nodebb-mongo-1 Running 
+[2026-10-03T23:20:54Z] ensuring nodebb is up (exec target for the uploads tar and the rebuild)
+ Container template-forum-nodebb-mongo-1 Running 
+ Container template-forum-nodebb-nodebb-1 Recreate 
+ Container template-forum-nodebb-nodebb-1 Recreated 
+ Container template-forum-nodebb-mongo-1 Waiting 
+ Container template-forum-nodebb-mongo-1 Healthy 
+ Container template-forum-nodebb-nodebb-1 Starting 
+ Container template-forum-nodebb-nodebb-1 Started 
+[2026-10-03T23:21:11Z] restoring from backups/20261003T232002Z
+[2026-10-03T23:21:11Z] 1/3 restoring database (mongorestore --drop --archive)
+2026-10-03T23:21:12.037+0000	preparing collections to restore from
+2026-10-03T23:21:12.044+0000	reading metadata for `nodebb.objects` from `archive on stdin`
+2026-10-03T23:21:12.044+0000	reading metadata for `nodebb.searchtopic` from `archive on stdin`
+2026-10-03T23:21:12.044+0000	reading metadata for `nodebb.searchchat` from `archive on stdin`
+2026-10-03T23:21:12.045+0000	reading metadata for `nodebb.sessions` from `archive on stdin`
+2026-10-03T23:21:12.045+0000	reading metadata for `nodebb.searchpost` from `archive on stdin`
+2026-10-03T23:21:12.047+0000	dropping collection `nodebb.sessions` before restoring
+2026-10-03T23:21:12.093+0000	restoring `nodebb.sessions` from `archive on stdin`
+2026-10-03T23:21:12.151+0000	restoring `nodebb.searchpost` from `archive on stdin`
+2026-10-03T23:21:12.161+0000	finished restoring `nodebb.searchpost` (2 documents, 0 failures)
+2026-10-03T23:21:12.167+0000	finished restoring `nodebb.sessions` (25 documents, 0 failures)
+2026-10-03T23:21:12.167+0000	dropping collection `nodebb.objects` before restoring
+2026-10-03T23:21:12.221+0000	restoring `nodebb.objects` from `archive on stdin`
+2026-10-03T23:21:12.257+0000	finished restoring `nodebb.objects` (1041 documents, 0 failures)
+2026-10-03T23:21:12.301+0000	restoring `nodebb.searchtopic` from `archive on stdin`
+2026-10-03T23:21:12.318+0000	finished restoring `nodebb.searchtopic` (1 document, 0 failures)
+2026-10-03T23:21:12.379+0000	restoring `nodebb.searchchat` from `archive on stdin`
+2026-10-03T23:21:12.396+0000	finished restoring `nodebb.searchchat` (0 documents, 0 failures)
+2026-10-03T23:21:12.396+0000	restoring indexes for collection `nodebb.objects` from metadata
+2026-10-03T23:21:12.396+0000	index: &idx.IndexDocument{Options:bson.M{"background":true, "name":"_key_1_score_-1", "v":2}, Key:bson.D{bson.E{Key:"_key", Value:1}, bson.E{Key:"score", Value:-1}}, PartialFilterExpression:(*bson.D)(nil)}
+2026-10-03T23:21:12.396+0000	index: &idx.IndexDocument{Options:bson.M{"background":true, "name":"_key_1_value_-1", "sparse":true, "unique":true, "v":2}, Key:bson.D{bson.E{Key:"_key", Value:1}, bson.E{Key:"value", Value:-1}}, PartialFilterExpression:(*bson.D)(nil)}
+2026-10-03T23:21:12.396+0000	index: &idx.IndexDocument{Options:bson.M{"background":true, "name":"members_1__key_1", "v":2}, Key:bson.D{bson.E{Key:"members", Value:1}, bson.E{Key:"_key", Value:1}}, PartialFilterExpression:(*bson.D)(0xa835a726660)}
+2026-10-03T23:21:12.396+0000	index: &idx.IndexDocument{Options:bson.M{"background":true, "expireAfterSeconds":0, "name":"expireAt_1", "v":2}, Key:bson.D{bson.E{Key:"expireAt", Value:1}}, PartialFilterExpression:(*bson.D)(0xa835a726780)}
+2026-10-03T23:21:12.396+0000	restoring indexes for collection `nodebb.searchtopic` from metadata
+2026-10-03T23:21:12.396+0000	index: &idx.IndexDocument{Options:bson.M{"name":"ts_1", "v":2}, Key:bson.D{bson.E{Key:"ts", Value:1}}, PartialFilterExpression:(*bson.D)(nil)}
+2026-10-03T23:21:12.396+0000	index: &idx.IndexDocument{Options:bson.M{"background":true, "default_language":"english", "language_override":"language", "name":"content_text_uid_1_cid_1", "textIndexVersion":3, "v":2, "weights":bson.D{bson.E{Key:"content", Value:1}}}, Key:bson.D{bson.E{Key:"_fts", Value:"text"}, bson.E{Key:"_ftsx", Value:1}, bson.E{Key:"uid", Value:1}, bson.E{Key:"cid", Value:1}}, PartialFilterExpression:(*bson.D)(nil)}
+2026-10-03T23:21:12.396+0000	restoring indexes for collection `nodebb.searchchat` from metadata
+2026-10-03T23:21:12.396+0000	index: &idx.IndexDocument{Options:bson.M{"background":true, "default_language":"english", "language_override":"language", "name":"content_text_roomId_1_uid_1", "textIndexVersion":3, "v":2, "weights":bson.D{bson.E{Key:"content", Value:1}}}, Key:bson.D{bson.E{Key:"_fts", Value:"text"}, bson.E{Key:"_ftsx", Value:1}, bson.E{Key:"roomId", Value:1}, bson.E{Key:"uid", Value:1}}, PartialFilterExpression:(*bson.D)(nil)}
+2026-10-03T23:21:12.396+0000	restoring indexes for collection `nodebb.sessions` from metadata
+2026-10-03T23:21:12.396+0000	index: &idx.IndexDocument{Options:bson.M{"background":true, "expireAfterSeconds":0, "name":"expires_1", "v":2}, Key:bson.D{bson.E{Key:"expires", Value:1}}, PartialFilterExpression:(*bson.D)(nil)}
+2026-10-03T23:21:12.441+0000	restoring indexes for collection `nodebb.searchpost` from metadata
+2026-10-03T23:21:12.442+0000	index: &idx.IndexDocument{Options:bson.M{"name":"ts_1", "v":2}, Key:bson.D{bson.E{Key:"ts", Value:1}}, PartialFilterExpression:(*bson.D)(nil)}
+2026-10-03T23:21:12.442+0000	index: &idx.IndexDocument{Options:bson.M{"background":true, "default_language":"english", "language_override":"language", "name":"content_text_uid_1_cid_1", "textIndexVersion":3, "v":2, "weights":bson.D{bson.E{Key:"content", Value:1}}}, Key:bson.D{bson.E{Key:"_fts", Value:"text"}, bson.E{Key:"_ftsx", Value:1}, bson.E{Key:"uid", Value:1}, bson.E{Key:"cid", Value:1}}, PartialFilterExpression:(*bson.D)(nil)}
+2026-10-03T23:21:13.098+0000	1069 document(s) restored successfully. 0 document(s) failed to restore.
+[2026-10-03T23:21:13Z] 2/3 restoring uploads
+[2026-10-03T23:21:13Z] 3/3 rebuilding assets (the build volume may have been recreated)
+  started
+2026-10-03T23:21:14.744Z [4567/103] - info: [build] Building in series mode
+2026-10-03T23:21:14.745Z [4567/103] - info: [build]         plugin static dirs  build started
+2026-10-03T23:21:14.750Z [4567/103] - info: [build]         plugin static dirs  build completed in 0.004sec
+2026-10-03T23:21:14.750Z [4567/103] - info: [build]          requirejs modules  build started
+2026-10-03T23:21:14.827Z [4567/103] - info: [build]          requirejs modules  build completed in 0.077sec
+2026-10-03T23:21:14.827Z [4567/103] - info: [build]           client js bundle  build started
+2026-10-03T23:21:14.829Z [4567/103] - info: [build]           client js bundle  build completed in 0.002sec
+2026-10-03T23:21:14.829Z [4567/103] - info: [build]            admin js bundle  build started
+2026-10-03T23:21:14.831Z [4567/103] - info: [build]            admin js bundle  build completed in 0.002sec
+2026-10-03T23:21:14.831Z [4567/103] - info: [build]         client side styles  build started
+2026-10-03T23:21:16.254Z [4567/103] - info: [build]         client side styles  build completed in 1.423sec
+2026-10-03T23:21:16.254Z [4567/103] - info: [build] admin control panel styles  build started
+2026-10-03T23:21:18.165Z [4567/103] - info: [build] admin control panel styles  build completed in 1.911sec
+2026-10-03T23:21:18.165Z [4567/103] - info: [build]                  templates  build started
+2026-10-03T23:21:19.263Z [4567/103] - info: [build]                  templates  build completed in 1.098sec
+2026-10-03T23:21:19.263Z [4567/103] - info: [build]                  languages  build started
+2026-10-03T23:21:22.823Z [4567/103] - info: [build]                  languages  build completed in 3.56sec
+2026-10-03T23:21:22.824Z [4567/103] - info: [build] Bundling with Webpack.
+
+[1%] setup (before run)
+[1%] setup (before run NodeEnvironmentPlugin)
+[1%] setup (before run)
+[2%] setup (run)
+[4%] setup (normal module factory)
+[5%] setup (context module factory)
+[6%] setup (before compile)
+[7%] setup (compile)
+[7%] setup (compile ExternalsPlugin)
+[7%] setup (compile)
+[8%] setup (compilation)
+[8%] setup (compilation ArrayPushCallbackChunkFormatPlugin)
+[8%] setup (compilation JsonpChunkLoadingPlugin)
+[8%] setup (compilation StartupChunkDependenciesPlugin)
+[8%] setup (compilation ImportScriptsChunkLoadingPlugin)
+[8%] setup (compilation FetchCompileAsyncWasmPlugin)
+[8%] setup (compilation HtmlModulesPlugin)
+[8%] setup (compilation WorkerAndWorkletPlugin)
+[8%] setup (compilation SplitChunksPlugin)
+[8%] setup (compilation ResolverCachePlugin)
+[8%] setup (compilation)
+[9%] setup (compilation)
+[9%] setup (compilation ProgressPlugin)
+[9%] setup (compilation ExternalsPlugin)
+[9%] setup (compilation ChunkPrefetchPreloadPlugin)
+[9%] setup (compilation ResourceHintPlugin)
+[9%] setup (compilation JavascriptModulesPlugin)
+[9%] setup (compilation JsonModulesPlugin)
+[9%] setup (compilation AssetModulesPlugin)
+[9%] setup (compilation AsyncWebAssemblyModulesPlugin)
+[9%] setup (compilation CssModulesPlugin)
+[9%] setup (compilation HtmlModulesPlugin)
+[9%] setup (compilation TypeScriptPlugin)
+[9%] setup (compilation EntryPlugin)
+[9%] setup (compilation RuntimePlugin)
+[9%] setup (compilation InferAsyncModulesPlugin)
+[9%] setup (compilation DataUriPlugin)
+[9%] setup (compilation FileUriPlugin)
+[9%] setup (compilation CompatibilityPlugin)
+[9%] setup (compilation HarmonyModulesPlugin)
+[9%] setup (compilation AMDPlugin)
+[9%] setup (compilation RequireJsStuffPlugin)
+[9%] setup (compilation CommonJsPlugin)
+[9%] setup (compilation LoaderPlugin)
+[9%] setup (compilation NodeStuffPlugin)
+[9%] setup (compilation APIPlugin)
+[9%] setup (compilation ExportsInfoApiPlugin)
+[9%] setup (compilation WebpackIsIncludedPlugin)
+[9%] setup (compilation ConstPlugin)
+[9%] setup (compilation UseStrictPlugin)
+[9%] setup (compilation RequireIncludePlugin)
+[9%] setup (compilation RequireEnsurePlugin)
+[9%] setup (compilation RequireContextPlugin)
+[9%] setup (compilation ImportPlugin)
+[9%] setup (compilation ImportMetaContextPlugin)
+[9%] setup (compilation SystemPlugin)
+[9%] setup (compilation ImportMetaPlugin)
+[9%] setup (compilation URLPlugin)
+[9%] setup (compilation DefaultStatsFactoryPlugin)
+[9%] setup (compilation DefaultStatsPresetPlugin)
+[9%] setup (compilation DefaultStatsPrinterPlugin)
+[9%] setup (compilation JavascriptMetaInfoPlugin)
+[9%] setup (compilation EnsureChunkConditionsPlugin)
+[9%] setup (compilation RemoveEmptyChunksPlugin)
+[9%] setup (compilation MergeDuplicateChunksPlugin)
+[9%] setup (compilation FlagIncludedChunksPlugin)
+[9%] setup (compilation SideEffectsFlagPlugin)
+[9%] setup (compilation FlagDependencyExportsPlugin)
+[9%] setup (compilation FlagDependencyUsagePlugin)
+[9%] setup (compilation InnerGraphPlugin)
+[9%] setup (compilation CircularModulesPlugin)
+[9%] setup (compilation ConstExportsPlugin)
+[9%] setup (compilation MangleExportsPlugin)
+[9%] setup (compilation ModuleConcatenationPlugin)
+[9%] setup (compilation NoEmitOnErrorsPlugin)
+[9%] setup (compilation RealContentHashPlugin)
+[9%] setup (compilation WasmFinalizeExportsPlugin)
+[9%] setup (compilation DeterministicModuleIdsPlugin)
+[9%] setup (compilation DeterministicChunkIdsPlugin)
+[9%] setup (compilation DefinePlugin)
+[9%] setup (compilation TerserPlugin)
+[9%] setup (compilation TemplatedPathPlugin)
+[9%] setup (compilation RecordIdsPlugin)
+[9%] setup (compilation WarnCaseSensitiveModulesPlugin)
+[9%] setup (compilation)
+[10%] building 
+[10%] building (0/0 modules)
+[10%] building (0/18 modules)
+[10%] building (6/431 modules)
+[10%] building (316/591 modules)
+[10%] building (423/638 modules)
+[10%] building (494/654 modules)
+[10%] building (import loader file-loader/dist/cjs.js)
+[10%] building (582/764 modules)
+[10%] building (700/796 modules)
+[38%] building (887/888 modules)
+[65%] building (888/888 modules)
+[65%] building 
+[69%] building (finish)
+[69%] building (finish HtmlModulesPlugin)
+[69%] building (finish)
+[70%] sealing (finish module graph)
+[70%] sealing (finish module graph ResolverCachePlugin)
+[70%] sealing (finish module graph InferAsyncModulesPlugin)
+[70%] sealing (finish module graph FlagDependencyExportsPlugin)
+[70%] sealing (finish module graph InnerGraphPlugin)
+[70%] sealing (finish module graph WasmFinalizeExportsPlugin)
+[70%] sealing (finish module graph)
+[71%] sealing (plugins)
+[71%] sealing (plugins WarnCaseSensitiveModulesPlugin)
+[71%] sealing (plugins)
+[71%] sealing (dependencies optimization)
+[71%] sealing (dependencies optimization SideEffectsFlagPlugin)
+[71%] sealing (dependencies optimization FlagDependencyUsagePlugin)
+[71%] sealing (dependencies optimization CircularModulesPlugin)
+[71%] sealing (dependencies optimization ConstExportsPlugin)
+[71%] sealing (dependencies optimization)
+[72%] sealing (after dependencies optimization)
+[73%] sealing (chunk graph)
+[73%] sealing (after chunk graph)
+[73%] sealing (after chunk graph HtmlModulesPlugin)
+[73%] sealing (after chunk graph)
+[74%] sealing (optimizing)
+[74%] sealing (module optimization)
+[75%] sealing (after module optimization)
+[76%] sealing (chunk optimization)
+[76%] sealing (chunk optimization EnsureChunkConditionsPlugin)
+[76%] sealing (chunk optimization RemoveEmptyChunksPlugin)
+[76%] sealing (chunk optimization MergeDuplicateChunksPlugin)
+[76%] sealing (chunk optimization SplitChunksPlugin)
+[76%] sealing (chunk optimization RemoveEmptyChunksPlugin)
+[76%] sealing (chunk optimization)
+[76%] sealing (after chunk optimization)
+[77%] sealing (module and chunk tree optimization)
+[78%] sealing (after module and chunk tree optimization)
+[78%] sealing (chunk modules optimization)
+[78%] sealing (chunk modules optimization ModuleConcatenationPlugin)
+[78%] sealing (chunk modules optimization)
+[79%] sealing (after chunk modules optimization)
+[80%] sealing (module reviving)
+[80%] sealing (module reviving RecordIdsPlugin)
+[80%] sealing (module reviving)
+[80%] sealing (before module ids)
+[81%] sealing (module ids)
+[81%] sealing (module ids DeterministicModuleIdsPlugin)
+[81%] sealing (module ids)
+[82%] sealing (module id optimization)
+[82%] sealing (module id optimization)
+[83%] sealing (chunk reviving)
+[83%] sealing (chunk reviving RecordIdsPlugin)
+[83%] sealing (chunk reviving)
+[83%] sealing (before chunk ids)
+[84%] sealing (chunk ids)
+[84%] sealing (chunk ids DeterministicChunkIdsPlugin)
+[84%] sealing (chunk ids)
+[85%] sealing (chunk id optimization)
+[85%] sealing (chunk id optimization FlagIncludedChunksPlugin)
+[85%] sealing (chunk id optimization)
+[85%] sealing (after chunk id optimization)
+[86%] sealing (record modules)
+[86%] sealing (record modules RecordIdsPlugin)
+[86%] sealing (record modules)
+[87%] sealing (record chunks)
+[87%] sealing (record chunks RecordIdsPlugin)
+[87%] sealing (record chunks)
+[87%] sealing (module hashing)
+[88%] sealing (code generation)
+[89%] sealing (runtime requirements)
+[89%] sealing (hashing)
+[90%] sealing (after hashing)
+[91%] sealing (record hash)
+[91%] sealing (module assets processing)
+[92%] sealing (chunk assets processing)
+[92%] sealing (asset processing)
+[92%] sealing (asset processing TerserPlugin)
+[92%] sealing (asset processing RealContentHashPlugin)
+[92%] sealing (asset processing HtmlModulesPlugin)
+[92%] sealing (asset processing)
+[93%] sealing (after asset optimization)
+[94%] sealing (recording)
+[94%] sealing (after seal)
+[94%] sealing (after seal HtmlModulesPlugin)
+[94%] sealing (after seal CircularModulesPlugin)
+[94%] sealing (after seal)
+[95%] emitting (emit)
+[95%] emitting (emit CleanPlugin)
+[95%] emitting (emit)
+[98%] emitting (after emit)
+[98%] emitting (after emit SizeLimitsPlugin)
+[98%] emitting (after emit)
+Build finished at 23:21:37 by 0.000s
+Build finished at 23:21:37 by 0.000s
+Build finished at 23:21:37 by 0.000s
+Build finished at 23:21:37 by 0.000s
+Build finished at 23:21:37 by 0.000s
+Build finished at 23:21:37 by 0.000s
+Build finished at 23:21:37 by 0.000s
+Build finished at 23:21:37 by 0.000s
+2026-10-03T23:21:40.317Z [4567/103] - info: [build] Bundling took 13580 ms
+2026-10-03T23:21:40.320Z [4567/103] - info: [build] Asset compilation successful. Completed in 25.574sec.
+[2026-10-03T23:21:40Z] recreating nodebb so it reconnects to the restored database
+ Container template-forum-nodebb-mongo-1 Running 
+ Container template-forum-nodebb-nodebb-1 Recreate 
+ Container template-forum-nodebb-nodebb-1 Recreated 
+ Container template-forum-nodebb-mongo-1 Waiting 
+ Container template-forum-nodebb-mongo-1 Healthy 
+ Container template-forum-nodebb-nodebb-1 Starting 
+ Container template-forum-nodebb-nodebb-1 Started 
+NAME                             IMAGE                          COMMAND                  SERVICE   CREATED              STATUS                        PORTS
+template-forum-nodebb-mongo-1    mongo:7-jammy                  "docker-entrypoint.s…"   mongo     About a minute ago   Up About a minute (healthy)   27017/tcp
+template-forum-nodebb-nodebb-1   ghcr.io/nodebb/nodebb:4.16.1   "tini -- entrypoint.…"   nodebb    20 seconds ago       Up 16 seconds (healthy)       0.0.0.0:4567->4567/tcp
+[2026-10-03T23:22:01Z] restore: OK
+
+## after restore: GET topic (expect 200)
+HTTP 200

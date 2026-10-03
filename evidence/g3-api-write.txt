@@ -1,0 +1,45 @@
+# G3b: category + topic + reply over the official write API, public topic URL 200
+# command: scripts/verify.sh
+
+## scripts/verify.sh (exercises the updated lib.sh token code)
+[2026-10-03T23:27:34Z] 1/6 HTTP health: GET http://172.18.0.1:4567/api/config
+HTTP 200
+{
+  "version": null,
+  "uid": 0,
+  "loggedIn": false
+}
+[2026-10-03T23:27:34Z] 2/6 minting master API token (GET /api/config, POST utilities/login, POST admin/tokens)
+[2026-10-03T23:27:35Z] minted master token for admin uid=1 (secret in /opt/workspace/tmp/template-forum-nodebb/repo/runtime/api-token.json, mode 600)
+[2026-10-03T23:27:35Z] 3/6 POST /api/v3/categories
+HTTP 200
+{
+  "status": {
+    "code": "ok",
+    "message": "OK"
+  },
+  "cid": 5,
+  "name": "Template Category 20261003T232735Z"
+}
+[2026-10-03T23:27:36Z] 4/6 POST /api/v3/topics
+HTTP 200
+{
+  "status": {
+    "code": "ok",
+    "message": "OK"
+  },
+  "tid": 2,
+  "slug": "2/template-smoke-topic-20261003t232735z"
+}
+[2026-10-03T23:27:36Z] 5/6 POST /api/v3/topics/2 (reply; POST /api/v3/posts does not exist)
+HTTP 200
+{
+  "status": {
+    "code": "ok",
+    "message": "OK"
+  },
+  "pid": 3
+}
+[2026-10-03T23:27:36Z] 6/6 GET the public topic URL
+GET http://172.18.0.1:4567/topic/2/template-smoke-topic-20261003t232735z -> HTTP 200
+[2026-10-03T23:27:36Z] verify: OK (category 5, topic 2)

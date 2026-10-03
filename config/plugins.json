@@ -1,0 +1,17 @@
+{
+  "_comment": "Declared plugin/theme manifest (lockfile). scripts/apply.sh reads this file, installs each exact version with npm inside the NodeBB container, then activates it with the official ./nodebb activate verb and runs ./nodebb build. A consuming project edits this file (or points PLUGINS_MANIFEST at its own) instead of editing the template scripts.",
+  "plugins": [
+    {
+      "name": "nodebb-plugin-hashtags",
+      "version": "4.0.1",
+      "compatibility": "^4.14.0"
+    }
+  ],
+  "themes": [
+    {
+      "name": "nodebb-theme-harmony",
+      "version": "3.3.12",
+      "compatibility": "^4.16.0"
+    }
+  ]
+}

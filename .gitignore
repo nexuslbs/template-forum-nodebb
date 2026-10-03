@@ -1,0 +1,24 @@
+# Real environment file (holds generated throwaway secrets). Placeholders live
+# in .env.example, which IS committed.
+.env
+.env.*
+!.env.example
+
+# Rendered runtime state: config.json (holds DB password + NodeBB secret),
+# npm package.json/package-lock.json seeded by the image entrypoint, API token.
+runtime/
+
+# Backups and database dumps (contain forum data and credentials).
+backups/
+*.archive
+*.dump
+*.bson
+*.tar.gz
+
+# Compose overlays are per-host.
+docker-compose.override.yml
+docker-compose.override.yaml
+
+# Scratch.
+*.log
+.DS_Store

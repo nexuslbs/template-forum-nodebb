@@ -1,0 +1,6 @@
+# G2: docker compose up -d then docker compose ps (both services healthy)
+# command: scripts/up.sh ; docker compose --project-name template-forum-nodebb --env-file .env -f docker-compose.yml ps
+
+NAME                             IMAGE                          COMMAND                  SERVICE   CREATED              STATUS                        PORTS
+template-forum-nodebb-mongo-1    mongo:7-jammy                  "docker-entrypoint.s…"   mongo     About a minute ago   Up About a minute (healthy)   27017/tcp
+template-forum-nodebb-nodebb-1   ghcr.io/nodebb/nodebb:4.16.1   "tini -- entrypoint.…"   nodebb    39 seconds ago       Up 37 seconds (healthy)       0.0.0.0:4567->4567/tcp

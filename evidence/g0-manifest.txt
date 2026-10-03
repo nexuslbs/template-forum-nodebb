@@ -1,0 +1,45 @@
+# G0: official pinned image verification
+# command: docker manifest inspect ghcr.io/nodebb/nodebb:4.16.1
+
+{
+   "schemaVersion": 2,
+   "mediaType": "application/vnd.oci.image.index.v1+json",
+   "manifests": [
+      {
+         "mediaType": "application/vnd.oci.image.manifest.v1+json",
+         "size": 2193,
+         "digest": "sha256:84db9830f59c1a801f10be5bc12d0adc157200424280e4351152b0ca69eea962",
+         "platform": {
+            "architecture": "amd64",
+            "os": "linux"
+         }
+      },
+      {
+         "mediaType": "application/vnd.oci.image.manifest.v1+json",
+         "size": 838,
+         "digest": "sha256:858feec0fc7e25ecb464bf7274aa577dc5061171200a0837a2efa32c132c7aa2",
+         "platform": {
+            "architecture": "unknown",
+            "os": "unknown"
+         }
+      },
+      {
+         "mediaType": "application/vnd.oci.image.manifest.v1+json",
+         "size": 2193,
+         "digest": "sha256:85828085102e2949700e9615d0b5c4e628fbe2a0a0b0afaab2286b1cbba7ce5a",
+         "platform": {
+            "architecture": "arm64",
+            "os": "linux"
+         }
+      },
+      {
+         "mediaType": "application/vnd.oci.image.manifest.v1+json",
+         "size": 838,
+         "digest": "sha256:30703d423b3fce16d0729f6a6f91a4abece483d51247b133ec7bae6c3881f3fb",
+         "platform": {
+            "architecture": "unknown",
+            "os": "unknown"
+         }
+      }
+   ]
+}

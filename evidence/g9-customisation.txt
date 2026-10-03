@@ -1,0 +1,27 @@
+# Customisation model proof: extend the template WITHOUT editing it
+
+## 1. compose overlay: docker-compose.override.yml is merged automatically
+# command: docker compose --project-name template-forum-nodebb --env-file .env config
+      NODEBB_EXTRA_LOGGING: "true"
+        source: /opt/workspace/tmp/template-forum-nodebb/repo/custom
+        target: /opt/custom
+
+## 2. custom plugin/theme manifest via PLUGINS_MANIFEST in .env
+# .env: PLUGINS_MANIFEST=/opt/workspace/tmp/template-forum-nodebb/custom/plugins.custom.json
+# command: . scripts/lib.sh; load_env; parse the manifest exactly as apply.sh does
+manifest=/opt/workspace/tmp/template-forum-nodebb/custom/plugins.custom.json
+nodebb-plugin-hashtags@4.0.1
+nodebb-theme-harmony@3.3.12
+
+## 3. custom config template via CONFIG_TEMPLATE in .env
+# .env: CONFIG_TEMPLATE=/opt/workspace/tmp/template-forum-nodebb/custom/config.custom.json.tpl
+# command: . scripts/lib.sh; load_env; render_template "$CONFIG_TEMPLATE" ...
+{
+  "url": "http://172.18.0.1:4567",
+  "customProjectKey": "my-project-value",
+  "database": "mongo",
+  "mongo": {
+    "host": "mongo",
+    "database": "nodebb"
+  }
+}

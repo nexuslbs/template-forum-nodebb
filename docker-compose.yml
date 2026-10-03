@@ -1,0 +1,99 @@
+# Minimal reproducible NodeBB forum stack.
+#
+# Official images, PINNED (never `latest`):
+#   ghcr.io/nodebb/nodebb:${NODEBB_IMAGE_TAG}   mongo:7-jammy
+# The official NodeBB docker-compose.yml (NodeBB/NodeBB @ v4.16.1) ships MongoDB
+# as the default service and documents `mongodump` for backup, so MongoDB 7 is
+# the single datastore here. There is NO redis service: it is optional upstream.
+#
+# Non-interactive setup is the OFFICIAL env path: SETUP=1 plus the NODEBB_* map
+# from src/install.js, run as a one-off (`docker compose run --rm ... nodebb`)
+# because setup calls process.exit(). Then `up -d` starts the forum.
+#
+# Reproducible lifecycle: scripts/*.sh, documented in docs/RUNBOOK.md.
+
+name: ${COMPOSE_PROJECT_NAME:-template-forum-nodebb}
+
+services:
+  mongo:
+    image: mongo:7-jammy
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${NODEBB_DB_USER:-nodebb}
+      MONGO_INITDB_ROOT_PASSWORD: ${NODEBB_DB_PASSWORD:?set NODEBB_DB_PASSWORD in .env}
+      MONGO_INITDB_DATABASE: ${NODEBB_DB_NAME:-nodebb}
+    volumes:
+      - mongo-data:/data/db
+      # Official NodeBB/NodeBB install/docker/mongodb-user-init.js, rendered from
+      # the template with the .env password. Run only on first init.
+      - ./runtime/mongo/mongodb-user-init.js:/docker-entrypoint-initdb.d/user-init.js:ro
+    healthcheck:
+      # mongosh ships in mongo:7. The credentials are read from the container
+      # environment; `$$` defers expansion to the container shell.
+      test:
+        - CMD-SHELL
+        - >-
+          mongosh --quiet --host 127.0.0.1
+          --username "$$MONGO_INITDB_ROOT_USERNAME"
+          --password "$$MONGO_INITDB_ROOT_PASSWORD"
+          --authenticationDatabase admin
+          --eval 'db.adminCommand({ping:1}).ok' | grep -q 1
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+    networks:
+      - nodebbnet
+
+  nodebb:
+    image: ghcr.io/nodebb/nodebb:${NODEBB_IMAGE_TAG:-4.16.1}
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - "${NODEBB_BIND_ADDR:-127.0.0.1}:${NODEBB_PORT:-4567}:4567"
+    environment:
+      # Official src/install.js env map. setup reads these so it never prompts.
+      NODEBB_URL: ${NODEBB_URL:?set NODEBB_URL in .env}
+      NODEBB_DB: ${NODEBB_DB:-mongo}
+      NODEBB_DB_HOST: ${NODEBB_DB_HOST:-mongo}
+      NODEBB_DB_PORT: ${NODEBB_DB_PORT:-27017}
+      NODEBB_DB_USER: ${NODEBB_DB_USER:-nodebb}
+      NODEBB_DB_PASSWORD: ${NODEBB_DB_PASSWORD:?set NODEBB_DB_PASSWORD in .env}
+      NODEBB_DB_NAME: ${NODEBB_DB_NAME:-nodebb}
+      NODEBB_ADMIN_USERNAME: ${NODEBB_ADMIN_USERNAME:-admin}
+      NODEBB_ADMIN_PASSWORD: ${NODEBB_ADMIN_PASSWORD:?set NODEBB_ADMIN_PASSWORD in .env}
+      NODEBB_ADMIN_EMAIL: ${NODEBB_ADMIN_EMAIL:-admin@example.com}
+      secret: ${NODEBB_SECRET:?set NODEBB_SECRET in .env}
+      # Force an asset build on boot when the build volume was recreated.
+      START_BUILD: ${START_BUILD:-false}
+    volumes:
+      - nodebb-build:/usr/src/app/build
+      - nodebb-uploads:/usr/src/app/public/uploads
+      # The rendered config.json (template + .env) persists here. The image runs
+      # as uid 1001; the scripts chown this directory so setup can write it.
+      - ./runtime/config:/opt/config
+    healthcheck:
+      # node is guaranteed in the official image; fetch is global in Node 22.
+      # /api/config answers as soon as the HTTP server is up.
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:4567/api/config').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 60s
+    networks:
+      - nodebbnet
+
+volumes:
+  mongo-data:
+  nodebb-build:
+  nodebb-uploads:
+
+networks:
+  nodebbnet:
+    driver: bridge

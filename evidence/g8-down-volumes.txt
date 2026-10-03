@@ -1,0 +1,52 @@
+# G8: docker compose down --volumes + docker ps proving the project is gone
+
+## scripts/down.sh --volumes
+[2026-10-03T23:27:46Z] down --volumes (deletes mongo-data, nodebb-build, nodebb-uploads)
+ Container template-forum-nodebb-nodebb-1 Stopping 
+ Container template-forum-nodebb-nodebb-1 Stopped 
+ Container template-forum-nodebb-nodebb-1 Removing 
+ Container template-forum-nodebb-nodebb-1 Removed 
+ Container template-forum-nodebb-mongo-1 Stopping 
+ Container template-forum-nodebb-mongo-1 Stopped 
+ Container template-forum-nodebb-mongo-1 Removing 
+ Container template-forum-nodebb-mongo-1 Removed 
+ Volume template-forum-nodebb_nodebb-uploads Removing 
+ Network template-forum-nodebb_nodebbnet Removing 
+ Volume template-forum-nodebb_mongo-data Removing 
+ Volume template-forum-nodebb_nodebb-uploads Removed 
+ Volume template-forum-nodebb_nodebb-build Removing 
+ Volume template-forum-nodebb_mongo-data Removed 
+ Network template-forum-nodebb_nodebbnet Removed 
+ Volume template-forum-nodebb_nodebb-build Removed 
+NAME      IMAGE     COMMAND   SERVICE   CREATED   STATUS    PORTS
+[2026-10-03T23:27:48Z] down: OK
+
+## leftover containers for project template-forum-nodebb (expect none)
+(end)
+
+## leftover volumes for project (expect none)
+(end)
+
+## leftover networks (expect none)
+(none)
+
+## docker ps: only omni-stack production rows remain
+omni-stack-dashboard-1	Up 11 hours
+omni-stack-toolbox-1	Up 11 hours
+omni-stack-omniagent-1	Up 11 hours
+omni-stack-workstation-1	Up 2 hours (healthy)
+omni-stack-workstation-tools-1	Up 3 days
+omni-stack-workstation-office-1	Up 3 days
+omni-stack-workstation-media-1	Up 3 days
+omni-stack-mattermost-1	Up 4 days (healthy)
+omni-stack-vector-1	Up 4 days
+omni-stack-grafana-1	Up 10 hours
+omni-stack-mattermost-db-1	Up 4 days (healthy)
+omni-stack-loki-1	Up 4 days
+omni-stack-postgres-1	Up 4 days (healthy)
+omni-stack-prometheus-1	Up 4 days
+omni-stack-cloudflared-1	Up 4 days
+omni-stack-noop-provider-1	Up 4 days (healthy)
+omni-stack-workstation-datasci-1	Up 4 days
+omni-stack-browser-1	Up 5 days
+omni-stack-workbench-1	Up 5 days (healthy)

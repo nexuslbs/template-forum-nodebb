@@ -1,0 +1,19 @@
+# Example compose overlay for a CONSUMING project. Copy to
+# docker-compose.override.yml (gitignored) and edit. Docker Compose merges it on
+# top of docker-compose.yml automatically, so the template files stay untouched.
+#
+# Use it to add your own services, extra mounted configuration, a reverse proxy,
+# or extra environment. Example: a second NodeBB plugin mount plus a mail relay.
+#
+# Do NOT put secrets in this file; reference the .env variables instead.
+
+services:
+  nodebb:
+    environment:
+      # Example: a consuming project's own config value. NodeBB reads extra
+      # settings through config.json only, so prefer the CONFIG_TEMPLATE
+      # override (see docs/RUNBOOK.md section "Customisation").
+      NODEBB_EXTRA_LOGGING: "true"
+    volumes:
+      # Example: mount a project-owned directory read-only into the container.
+      - ./custom:/opt/custom:ro

@@ -1,0 +1,161 @@
+# G3a: non-interactive setup + build
+# command: scripts/bootstrap.sh (SETUP=1 one-off, then ./nodebb build)
+# NodeBB image: ghcr.io/nodebb/nodebb:4.16.1
+
+## scripts/bootstrap.sh
+[2026-10-03T23:26:31Z] rendered /opt/workspace/tmp/template-forum-nodebb/repo/runtime/config/config.json from /opt/workspace/tmp/template-forum-nodebb/repo/config/config.json.tpl
+[2026-10-03T23:26:31Z] rendered /opt/workspace/tmp/template-forum-nodebb/repo/runtime/mongo/mongodb-user-init.js
+[2026-10-03T23:26:31Z] 1/4 ensuring mongo is healthy
+ Container template-forum-nodebb-mongo-1 Running 
+[2026-10-03T23:26:31Z] 2/4 non-interactive setup (SETUP=1, official NODEBB_* env map)
+ Container template-forum-nodebb-mongo-1 Running 
+ Container template-forum-nodebb-mongo-1 Waiting 
+ Container template-forum-nodebb-mongo-1 Healthy 
+ Container template-forum-nodebb-nodebb-run-3af60d38f43f Creating 
+ Container template-forum-nodebb-nodebb-run-3af60d38f43f Created 
+up to date, audited 809 packages in 3s
+141 packages are looking for funding
+  run `npm fund` for details
+4 vulnerabilities (2 moderate, 2 high)
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+Run `npm audit` for details.
+npm warn install-scripts 3 packages have install scripts not yet covered by allowScripts:
+npm warn install-scripts   @parcel/watcher@2.6.0 (install: node-gyp rebuild)
+npm warn install-scripts   cbor-extract@2.2.2 (install: node-gyp rebuild)
+npm warn install-scripts   esbuild@0.28.2 (postinstall: node install.js)
+npm warn install-scripts
+npm warn install-scripts Run `npm install-scripts ls` to review, or `npm install-scripts approve <pkg>` to allow.
+npm notice
+npm notice New major version of npm available! 11.19.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice
+DEBUG: PACKAGE_MANAGER: npm
+DEBUG: CONFIG location: /opt/config/config.json
+DEBUG: START_BUILD: false
+DEBUG: NODEBB_ADDITIONAL_PLUGINS: 
+Starting setup session
+2026-10-03T23:26:45.541Z [7] - info: NodeBB Setup Triggered via Command Line
+Welcome to NodeBB v4.16.1!
+This looks like a new installation, so you'll have to answer a few questions about your environment before we can proceed.
+Press enter to accept the default setting (shown in brackets).
+2026-10-03T23:26:45.543Z [7] - info: [install/checkSetupFlagEnv] checking env vars for setup info...
+2026-10-03T23:26:45.706Z [7] - info: 
+Now configuring mongo database:
+2026-10-03T23:26:45.855Z [7] - info: [database] Checking database indices.
+2026-10-03T23:26:46.209Z [7] - info: [database] Checking database indices done!
+2026-10-03T23:26:47.300Z [7] - verbose: [minifier] utilizing a maximum of 1 additional threads
+Configuration Saved OK
+Populating database with default configs, if not already set...
+Enabling default theme: nodebb-theme-harmony
+No categories found, populating instance with default categories
+2026-10-03T23:26:48.145Z [7] - warn: No administrator account found — creating one now
+Creating welcome post!
+Enabling default plugins
+2026-10-03T23:26:48.781Z [7] - info: [install/defaultPlugins] customDefaults undefined
+2026-10-03T23:26:48.782Z [7] - info: [install/enableDefaultPlugins] activating default plugins {"0":"nodebb-plugin-composer-default","1":"nodebb-plugin-dbsearch","2":"nodebb-plugin-markdown","3":"nodebb-plugin-mentions","4":"nodebb-plugin-web-push","5":"nodebb-widget-essentials","6":"nodebb-rewards-essentials","7":"nodebb-plugin-emoji","8":"nodebb-plugin-emoji-android"}
+Parsing upgrade scripts... 
+OK | 8 script(s) found, 172 skipped
+  → [2018/11/26] Changing dbsearch mongodb search schema to use _id...2026-10-03T23:26:48.967Z [7] - error: MongoServerError: ns not found nodebb.searchtopic
+    at Connection.sendCommand (/usr/src/app/node_modules/mongodb/lib/cmap/connection.js:322:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async Connection.command (/usr/src/app/node_modules/mongodb/lib/cmap/connection.js:349:26)
+    at async Server.command (/usr/src/app/node_modules/mongodb/lib/sdam/server.js:208:29)
+    at async executeOperationWithRetries (/usr/src/app/node_modules/mongodb/lib/operations/execute_operation.js:217:32)
+    at async executeOperation (/usr/src/app/node_modules/mongodb/lib/operations/execute_operation.js:85:16)
+    at async Collection.dropIndex (/usr/src/app/node_modules/mongodb/lib/collection.js:417:16)
+    at async Object.method (/usr/src/app/node_modules/nodebb-plugin-dbsearch/upgrades/dbsearch_change_mongodb_schema.js:21:4)
+    at async Upgrade.process (/usr/src/app/src/upgrade.js:160:4)
+    at async Upgrade.run (/usr/src/app/src/upgrade.js:110:2)
+ OK (0.10 seconds)
+  → [2025/1/27] Changing integer search indices to string... OK (0.00 seconds)
+  → [2025/2/18] Add timestamp field to searchtopic searchpost collections... OK (0.18 seconds)
+  → [2025/7/8] Changing integer cid index to text for psql... OK (0.00 seconds)
+  → [2022/1/31] Reset Markdown Theme (if selected theme is not available)... OK (0.00 seconds)
+  → [2022/2/17] Update Markdown Theme to point to unminified file... OK (0.00 seconds)
+  → [2021/11/2] Delete mentions:sent:<pid> sorted sets... OK (0.00 seconds)
+  → [2025/6/29] Migrate_web_push_subscriptions_to_endpoint_keys... OK (0.00 seconds)
+Schema update complete!
+2026-10-03T23:26:49.183Z [7] - verbose: [build] Querying CPU core count for build strategy
+2026-10-03T23:26:49.183Z [7] - verbose: [build] System returned 2 cores, opting for series build strategy
+2026-10-03T23:26:49.184Z [7] - verbose: [build] building the following targets: plugin static dirs, requirejs modules, client js bundle, admin js bundle, client side styles, admin control panel styles, templates, languages
+  started
+2026-10-03T23:26:49.202Z [7] - verbose: [plugins] loading the following fields from plugin data: staticDirs, modules, clientScripts, acpScripts, cssFiles, scssFiles, acpScssFiles, languageData
+2026-10-03T23:26:49.209Z [7] - verbose: [plugins] Found 1 scss file(s) for plugin nodebb-plugin-composer-default
+2026-10-03T23:26:49.210Z [7] - verbose: [plugins] Found 1 scss file(s) for plugin nodebb-plugin-markdown
+2026-10-03T23:26:49.211Z [7] - verbose: [plugins] Found 1 scss file(s) for plugin nodebb-plugin-emoji
+2026-10-03T23:26:49.211Z [7] - verbose: [plugins] Found 1 acpScss file(s) for plugin nodebb-plugin-emoji
+2026-10-03T23:26:49.212Z [7] - verbose: [plugins] Found 13 AMD-style module(s) for plugin nodebb-plugin-composer-default
+2026-10-03T23:26:49.212Z [7] - verbose: [plugins] Found 2 AMD-style module(s) for plugin nodebb-theme-harmony
+2026-10-03T23:26:49.213Z [7] - verbose: [plugins] Found 1 js file(s) for plugin nodebb-theme-harmony
+2026-10-03T23:26:49.213Z [7] - verbose: [plugins] Found 1 AMD-style module(s) for plugin nodebb-plugin-dbsearch
+2026-10-03T23:26:49.213Z [7] - verbose: [plugins] Found 2 AMD-style module(s) for plugin nodebb-plugin-markdown
+2026-10-03T23:26:49.213Z [7] - verbose: [plugins] Found 1 js file(s) for plugin nodebb-plugin-markdown
+2026-10-03T23:26:49.214Z [7] - verbose: [plugins] Found 1 AMD-style module(s) for plugin nodebb-plugin-mentions
+2026-10-03T23:26:49.214Z [7] - verbose: [plugins] Found 1 js file(s) for plugin nodebb-plugin-mentions
+2026-10-03T23:26:49.215Z [7] - verbose: [plugins] Found 2 AMD-style module(s) for plugin nodebb-plugin-web-push
+2026-10-03T23:26:49.215Z [7] - verbose: [plugins] Found 5 AMD-style module(s) for plugin nodebb-plugin-emoji
+2026-10-03T23:26:49.215Z [7] - verbose: [plugins] Found 1 js file(s) for plugin nodebb-plugin-emoji
+2026-10-03T23:26:49.215Z [7] - verbose: [plugins] Found 1 js file(s) for plugin nodebb-plugin-emoji
+2026-10-03T23:26:49.216Z [7] - verbose: [plugins] found 2 static directories for nodebb-theme-harmony
+2026-10-03T23:26:49.217Z [7] - verbose: [plugins] found 1 static directories for nodebb-plugin-web-push
+2026-10-03T23:26:49.217Z [7] - verbose: [plugins] found 1 static directories for nodebb-plugin-emoji
+2026-10-03T23:26:49.220Z [7] - verbose: [plugins] Found 2 js file(s) for plugin nodebb-plugin-composer-default
+2026-10-03T23:26:49.220Z [7] - verbose: [plugins] found 1 static directories for nodebb-plugin-markdown
+2026-10-03T23:26:49.224Z [7] - info: [build] Building in series mode
+2026-10-03T23:26:49.224Z [7] - info: [build]         plugin static dirs  build started
+2026-10-03T23:26:49.230Z [7] - info: [build]         plugin static dirs  build completed in 0.006sec
+2026-10-03T23:26:49.230Z [7] - info: [build]          requirejs modules  build started
+2026-10-03T23:26:49.332Z [7] - info: [build]          requirejs modules  build completed in 0.102sec
+2026-10-03T23:26:49.332Z [7] - info: [build]           client js bundle  build started
+2026-10-03T23:26:49.335Z [7] - info: [build]           client js bundle  build completed in 0.003sec
+2026-10-03T23:26:49.335Z [7] - info: [build]            admin js bundle  build started
+2026-10-03T23:26:49.337Z [7] - info: [build]            admin js bundle  build completed in 0.002sec
+2026-10-03T23:26:49.337Z [7] - info: [build]         client side styles  build started
+2026-10-03T23:26:50.713Z [7] - info: [build]         client side styles  build completed in 1.376sec
+2026-10-03T23:26:50.714Z [7] - info: [build] admin control panel styles  build started
+2026-10-03T23:26:51.905Z [7] - info: [build] admin control panel styles  build completed in 1.191sec
+2026-10-03T23:26:51.905Z [7] - info: [build]                  templates  build started
+2026-10-03T23:26:52.447Z [7] - verbose: [meta/templates] Successfully compiled templates.
+2026-10-03T23:26:52.447Z [7] - info: [build]                  templates  build completed in 0.542sec
+2026-10-03T23:26:52.447Z [7] - info: [build]                  languages  build started
+2026-10-03T23:26:54.805Z [7] - info: [build]                  languages  build completed in 2.357sec
+2026-10-03T23:26:54.805Z [7] - info: [build] Bundling with Webpack.
+2026-10-03T23:27:01.941Z [7] - info: [build] Bundling took 6293 ms
+2026-10-03T23:27:01.954Z [7] - info: [build] Asset compilation successful. Completed in 12.717sec.
+NodeBB Setup Completed. Run "./nodebb start" to manually start your NodeBB server.
+[2026-10-03T23:27:03Z] 3/4 starting NodeBB against the installed database
+ Container template-forum-nodebb-mongo-1 Running 
+ Container template-forum-nodebb-nodebb-1 Recreate 
+ Container template-forum-nodebb-nodebb-1 Recreated 
+ Container template-forum-nodebb-mongo-1 Waiting 
+ Container template-forum-nodebb-mongo-1 Healthy 
+ Container template-forum-nodebb-nodebb-1 Starting 
+ Container template-forum-nodebb-nodebb-1 Started 
+[2026-10-03T23:27:20Z] 4/4 ./nodebb build
+  started
+2026-10-03T23:27:22.385Z [4567/92] - info: [build] Building in series mode
+2026-10-03T23:27:22.385Z [4567/92] - info: [build]         plugin static dirs  build started
+2026-10-03T23:27:22.389Z [4567/92] - info: [build]         plugin static dirs  build completed in 0.004sec
+2026-10-03T23:27:22.390Z [4567/92] - info: [build]          requirejs modules  build started
+2026-10-03T23:27:22.455Z [4567/92] - info: [build]          requirejs modules  build completed in 0.066sec
+2026-10-03T23:27:22.455Z [4567/92] - info: [build]           client js bundle  build started
+2026-10-03T23:27:22.460Z [4567/92] - info: [build]           client js bundle  build completed in 0.005sec
+2026-10-03T23:27:22.460Z [4567/92] - info: [build]            admin js bundle  build started
+2026-10-03T23:27:22.461Z [4567/92] - info: [build]            admin js bundle  build completed in 0.001sec
+2026-10-03T23:27:22.461Z [4567/92] - info: [build]         client side styles  build started
+2026-10-03T23:27:23.846Z [4567/92] - info: [build]         client side styles  build completed in 1.385sec
+2026-10-03T23:27:23.846Z [4567/92] - info: [build] admin control panel styles  build started
+2026-10-03T23:27:24.945Z [4567/92] - info: [build] admin control panel styles  build completed in 1.099sec
+2026-10-03T23:27:24.945Z [4567/92] - info: [build]                  templates  build started
+2026-10-03T23:27:25.555Z [4567/92] - info: [build]                  templates  build completed in 0.61sec
+2026-10-03T23:27:25.555Z [4567/92] - info: [build]                  languages  build started
+2026-10-03T23:27:27.791Z [4567/92] - info: [build]                  languages  build completed in 2.236sec
+2026-10-03T23:27:27.791Z [4567/92] - info: [build] Bundling with Webpack.
+2026-10-03T23:27:34.535Z [4567/92] - info: [build] Bundling took 5831 ms
+2026-10-03T23:27:34.536Z [4567/92] - info: [build] Asset compilation successful. Completed in 12.15sec.
+NAME                             IMAGE                          COMMAND                  SERVICE   CREATED              STATUS                        PORTS
+template-forum-nodebb-mongo-1    mongo:7-jammy                  "docker-entrypoint.s…"   mongo     About a minute ago   Up About a minute (healthy)   27017/tcp
+template-forum-nodebb-nodebb-1   ghcr.io/nodebb/nodebb:4.16.1   "tini -- entrypoint.…"   nodebb    31 seconds ago       Up 29 seconds (healthy)       0.0.0.0:4567->4567/tcp
+[2026-10-03T23:27:34Z] bootstrap: OK

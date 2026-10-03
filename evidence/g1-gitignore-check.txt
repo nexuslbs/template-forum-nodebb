@@ -1,0 +1,10 @@
+# G1b: .env, runtime/, backups/ are ignored, not committed
+# command: git status --ignored --short | grep '^!!'
+!! .env
+!! backups/
+!! runtime/
+
+# command: git check-ignore -v .env runtime/config/config.json backups
+.gitignore:3:.env	.env
+.gitignore:9:runtime/	runtime/config/config.json
+.gitignore:12:backups/	backups
