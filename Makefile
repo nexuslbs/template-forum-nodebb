@@ -2,10 +2,13 @@
 SHELL := /usr/bin/env bash
 .DEFAULT_GOAL := help
 
-.PHONY: help up down clean bootstrap apply verify backup restore migrate logs ps
+.PHONY: help up down clean bootstrap apply verify backup restore migrate logs ps deploy
 
 help: ## list targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  %-12s %s\n", $$1, $$2}'
+
+deploy: ## one-call deploy: make deploy [HOST=user@host] [DRY_RUN=1]
+	scripts/deploy.sh "$(if $(HOST),$(HOST),--local)" $(if $(DRY_RUN),--dry-run)
 
 up: ## start the stack and wait for both services to be healthy
 	scripts/up.sh

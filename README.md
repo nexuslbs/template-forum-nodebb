@@ -55,6 +55,7 @@ route:
 
 | Script | Purpose |
 | --- | --- |
+| `scripts/deploy.sh` | one-call deploy: up + setup (first run) + apply + verify; `--dry-run` prints the sequence |
 | `scripts/up.sh` | env + config render, `compose up -d`, wait healthy |
 | `scripts/bootstrap.sh` | one-off `SETUP=1` setup, restart, `./nodebb build` |
 | `scripts/apply.sh` | manifest plugins/themes: npm install, activate, build |
@@ -76,7 +77,8 @@ protected production project `omni-stack`. This host exports
 A consuming project extends the template through three official seams:
 
 1. `config/plugins.json` or `PLUGINS_MANIFEST=<path>` in `.env`: add your own
-   plugins/themes; `make apply` installs and activates them.
+   plugins/themes; `make apply` installs and activates them. See
+   `docs/PLUGINS.md` for the official npm + `./nodebb activate` mechanism.
 2. `config/config.json.tpl` or `CONFIG_TEMPLATE=<path>` in `.env`: point at your
    own NodeBB `config.json` template.
 3. `docker-compose.override.yml` (copy the `.example`): Docker Compose merges it
@@ -85,7 +87,29 @@ A consuming project extends the template through three official seams:
 
 See `docs/RUNBOOK.md` for the full operations manual.
 
+## Deploy
+
+`scripts/deploy.sh <user@host> [--dry-run]` syncs the repo, then runs the same
+local leg on the remote host: `up.sh`, `bootstrap.sh` (only when the database is
+still empty), `apply.sh`, `verify.sh`. `--local` runs that leg on this host. It
+presupposes only an SSH-reachable machine with `docker` (plus `git`/`rsync` for
+the remote leg), is non-interactive (`ssh -o BatchMode=yes`), and is idempotent.
+The real `.env`, backups, `runtime/` and the host overlay are NOT synced: the
+remote scripts create `.env` from `.env.example` when it is absent.
+
+```sh
+scripts/deploy.sh user@host --dry-run   # prints the sequence, touches nothing
+scripts/deploy.sh --local               # run it here
+```
+
 ## Evidence
 
 `evidence/` holds the raw output of the eight acceptance gates. See
 `evidence/README.md` for the gate map.
+
+## Licence
+
+MIT for this template (see `LICENSE`). NodeBB itself is GPL-3.0; the pinned
+plugins and themes keep their own licences. Nothing from those projects is
+vendored into this repository: the official image is pulled at run time and the
+manifest packages are installed inside the container.

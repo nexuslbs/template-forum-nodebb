@@ -115,7 +115,8 @@ the local round trip.
 Only official verbs are used: `setup`, `build`, `activate`, `upgrade` (plus
 `plugins` for reporting). Everything else is a shell orchestration around them.
 There is deliberately no custom `nodebb` command and no datastore write outside
-the official API.
+the official API. The official plugin mechanism (npm package + `./nodebb
+activate`) is written up in `docs/PLUGINS.md`.
 
 ## 7. Troubleshooting
 
@@ -162,3 +163,27 @@ No agent performs the steps below. A NAMED HUMAN performs them, in this order:
    cron or a systemd timer and stores the backups off-host.
 6. **Real email.** NodeBB email is configured through the ACP (or
    `config.json`); a human wires the real SMTP values.
+
+## 9. Deploy
+
+`scripts/deploy.sh` is the one-call entrypoint. It composes the existing scripts,
+it does not reimplement them:
+
+* `scripts/deploy.sh --local [--dry-run]` runs `up.sh`, then `bootstrap.sh` only
+  when the running database still has no collections, then `apply.sh` and
+  `verify.sh` on this host.
+* `scripts/deploy.sh <user@host> [--dry-run] [--dest DIR]` rsyncs the repo to the
+  remote host and runs the same local leg there over `ssh -o BatchMode=yes`. The
+  real `.env`, `backups/`, `runtime/`, `docker-compose.override.yml` and dumps
+  are excluded; the remote leg creates `.env` from `.env.example` when absent.
+  The remote host needs only `docker` (plus `git`/`rsync` at sync time).
+* `--dry-run` prints the exact command sequence, including the URL, and touches
+  nothing (it never creates `.env`).
+
+```sh
+scripts/deploy.sh user@host --dry-run
+scripts/deploy.sh user@host --dest /opt/template-forum-nodebb
+```
+
+After the deploy, the real DNS/TLS/email/secret steps in section 8 remain human
+work.
