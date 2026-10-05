@@ -15,6 +15,12 @@ npm install --save <package>@<version>            # install into the NodeBB tree
 `./nodebb plugins` lists the active set. Activation state lives in the NodeBB
 database, not in `config.json`.
 
+`./nodebb activate` applies "for the next startup of NodeBB", so the already
+running server keeps the previous theme/plugins until it reloads.
+`scripts/apply.sh` therefore restarts the NodeBB container (`compose restart
+nodebb`, the SAME container, so the npm-installed packages survive) after the
+build, which is what makes the newly activated set serve the live site.
+
 CAVEAT (upstream behaviour): do **not** also set `plugins:active` in
 `config.json`. When that array is present, `./nodebb activate` refuses with
 `Cannot activate plugins while plugin state configuration is set`. Use one

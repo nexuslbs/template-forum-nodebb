@@ -15,5 +15,6 @@ summary.
 | G7 | `g7-upgrade.txt` | image tag change and `./nodebb upgrade` output |
 | G8 | `g8-down-volumes.txt` | `down --volumes` and `docker ps` showing the project gone |
 | extra | `g9-customisation.txt` | compose overlay, custom manifest and custom config template without editing the template |
+| G10 | `g10-live-gates.txt` | two derived instances with DIFFERENT themes from one checkout (harmony vs persona), D4 backup/restore round trip, D5 real 4.16.0 -> 4.16.1 upgrade, D7 hashtags plugin live effect, D8 deploy help/dry-run/local, plus the five multi-instance/deploy fixes |
 
 The image digest is verified in `g0-manifest.txt`.

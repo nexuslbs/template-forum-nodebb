@@ -26,7 +26,8 @@ services:
       - mongo-data:/data/db
       # Official NodeBB/NodeBB install/docker/mongodb-user-init.js, rendered from
       # the template with the .env password. Run only on first init.
-      - ./runtime/mongo/mongodb-user-init.js:/docker-entrypoint-initdb.d/user-init.js:ro
+      # RUNTIME_DIR keeps derived instances on their own rendered files.
+      - ${RUNTIME_DIR:-./runtime}/mongo/mongodb-user-init.js:/docker-entrypoint-initdb.d/user-init.js:ro
     healthcheck:
       # mongosh ships in mongo:7. The credentials are read from the container
       # environment; `$$` defers expansion to the container shell.
@@ -66,6 +67,13 @@ services:
       NODEBB_ADMIN_PASSWORD: ${NODEBB_ADMIN_PASSWORD:?set NODEBB_ADMIN_PASSWORD in .env}
       NODEBB_ADMIN_EMAIL: ${NODEBB_ADMIN_EMAIL:-admin@example.com}
       secret: ${NODEBB_SECRET:?set NODEBB_SECRET in .env}
+      # Pin the CONTAINER listen port to the port the `ports:` mapping and the
+      # healthcheck below target. NodeBB's installer copies the port in
+      # NODEBB_URL into config.json and then listens on it (src/install.js:225),
+      # so a derived instance whose public URL carries a different port would
+      # bind the wrong port and fail its 127.0.0.1:4567 healthcheck. NodeBB's
+      # prestart prefers $PORT over config.port (src/prestart.js:114).
+      PORT: "4567"
       # Force an asset build on boot when the build volume was recreated.
       START_BUILD: ${START_BUILD:-false}
     volumes:
@@ -73,7 +81,9 @@ services:
       - nodebb-uploads:/usr/src/app/public/uploads
       # The rendered config.json (template + .env) persists here. The image runs
       # as uid 1001; the scripts chown this directory so setup can write it.
-      - ./runtime/config:/opt/config
+      # RUNTIME_DIR keeps derived instances on their own config.json: two
+      # instances sharing /opt/config would clobber each other's DB config.
+      - ${RUNTIME_DIR:-./runtime}/config:/opt/config
     healthcheck:
       # node is guaranteed in the official image; fetch is global in Node 22.
       # /api/config answers as soon as the HTTP server is up.

@@ -1,0 +1,138 @@
+# G10: LIVE two-instance / live-gate evidence (2026-10-05)
+
+Raw output of the WAVE 3 live audit of this template: two derived instances from
+ONE checkout (two different themes), backup/restore, upgrade, plugin and deploy.
+No template file is edited to derive an instance: each instance carries its own
+`.env` (COMPOSE_PROJECT_NAME, NODEBB_PORT, NODEBB_URL, RUNTIME_DIR,
+PLUGINS_MANIFEST).
+
+## Defects fixed in this commit
+
+### F1 two derived instances shared the runtime/config mount
+
+`docker compose config` for the two instances both resolved the `/opt/config`
+bind source to the repo `runtime/config`, so instance B's rendered config.json
+clobbered instance A's. Fix: `${RUNTIME_DIR:-./runtime}/config` and
+`${RUNTIME_DIR:-./runtime}/mongo/mongodb-user-init.js`. After the fix the two
+instances resolve to distinct per-instance sources.
+
+### F2 `API_BODY_FILE` computed before `load_env`
+
+`scripts/lib.sh` computed `API_BODY_FILE="$RUNTIME_DIR/api-last-response.json"`
+while sourcing, before a derived instance's `.env` set `RUNTIME_DIR`. Fix:
+resolve it inside `api()` from the current `RUNTIME_DIR`.
+
+### F3 container listen port followed NODEBB_URL, breaking port map + healthcheck
+
+NodeBB's installer runs `config.port = urlObj.port` (`src/install.js:225`), so
+instance A wrote `"port": "4570"` and listened on 4570 while the compose mapping
+(`4570:4567`) and healthcheck (`127.0.0.1:4567`) targeted 4567:
+
+```
+nodebb-a-nodebb-1  Up 7 minutes (health: starting)
+in-container fetch 127.0.0.1:4567 -> ERR
+in-container fetch 127.0.0.1:4570 -> 200
+```
+
+Fix: `PORT: "4567"` in the nodebb service environment (NodeBB's
+`src/prestart.js:114` prefers `$PORT` over `config.port`), matching the mapping
+and healthcheck.
+
+### F4 `scripts/apply.sh` never restarted the live server
+
+`./nodebb` documents `activate [plugin]` as applying "for the next startup of
+NodeBB". Before the fix the running forum kept the old theme/plugin:
+
+```
+instance B ./nodebb plugins -> nodebb-theme-persona (installed, enabled)
+instance B /api/config      -> "theme:id":"nodebb-theme-harmony"
+instance B <body class="... theme-harmony ...">
+```
+
+Fix: after the build, `compose restart nodebb` (SAME container, so the
+npm-installed packages survive) and wait for health.
+
+### F5 `scripts/deploy.sh` skipped setup on a started-but-uninstalled database
+
+`nodebb_installed` counted collections, but a started (uninstalled) NodeBB
+already creates the `objects`/`sessions` collections and schemaLog rows:
+
+```
+[deploy.sh --local] mongo collections in nodebb: 2
+[deploy.sh --local] database already installed; skipping scripts/bootstrap.sh
+ERROR: login returned HTTP 403
+```
+
+Fix: test for NodeBB's actual install marker, the `config` object
+(`objects.countDocuments({_key: "config"})`). After the fix:
+
+```
+[deploy.sh --local] nodebb config objects in nodebb: 0
+bootstrap: OK ... apply: OK ... verify: OK (category 5, topic 2)
+deploy(local): OK -> http://localhost:4567
+```
+
+## D6 two-theme (same template, no per-instance template edits)
+
+```
+instance a: nodebb-theme-harmony@3.3.12 (installed, enabled)   port 4570
+instance b: nodebb-theme-persona@15.3.8  (installed, enabled)   port 4571
+A <body class="... theme-harmony ...">   "theme:id":"nodebb-theme-harmony"
+B <body class="... theme-persona ...">   "theme:id":"nodebb-theme-persona"
+sha256 A page: 7fe9d410b704282f48b4a8fdc5674309bfba8eadd90889dc53b0a39c7270d8fd
+sha256 B page: 5d6de11bb37eddbed061788ddc075d1ca0cef63064b8f4ef1ac55ae3d7a4a4cb
+```
+
+## D4 backup / destroy / restore round trip (instance b)
+
+```
+before backup: GET topic -> HTTP 200
+scripts/backup.sh -> BACKUP_EXIT=0 (backups/20261005T132947Z/)
+scripts/down.sh --volumes -> DOWN_EXIT=0
+scripts/up.sh -> UP_EXIT=0 (fresh, empty database)
+GET topic BEFORE restore -> HTTP 404
+scripts/restore.sh newest -> RESTORE_EXIT=0
+GET topic AFTER restore  -> HTTP 200
+scripts/verify.sh -> verify: OK (category 6, topic 3)
+```
+
+## D5 upgrade (real version bump)
+
+```
+pre-upgrade scripts/backup.sh -> backups/20261005T133135Z/
+pin NODEBB_IMAGE_TAG=4.16.0 -> up.sh -> image ghcr.io/nodebb/nodebb:4.16.0, topic 200
+scripts/migrate.sh on 4.16.0 -> ./nodebb upgrade:
+  4. Updating NodeBB data store schema... Schema update complete!
+  NodeBB Upgrade Complete!  (MIGRATE_4160_EXIT=0), topic 200
+bump NODEBB_IMAGE_TAG=4.16.1 -> up.sh -> image ghcr.io/nodebb/nodebb:4.16.1, topic 200
+scripts/migrate.sh on 4.16.1 -> ./nodebb upgrade:
+  Schema update complete!  NodeBB Upgrade Complete!  (MIGRATE_4161_EXIT=0), topic 200
+scripts/verify.sh -> verify: OK (category 7, topic 4)
+```
+
+Rollback contract: the pre-upgrade dump plus the previous `NODEBB_IMAGE_TAG`
+(docs/RUNBOOK.md section 5).
+
+## D7 plugin install + activate + live effect
+
+```
+scripts/apply.sh manifest: nodebb-plugin-hashtags@4.0.1 nodebb-theme-harmony@3.3.12
+  npm install --save -> activating nodebb-plugin-hashtags -> restarting nodebb
+  * nodebb-plugin-hashtags@4.0.1 (installed, enabled)
+GET /topic/3/hashtag-live-check -> HTTP 200
+  <a href="/tags/nodebblive">#nodebblive</a>
+```
+
+## D8 deploy entrypoint
+
+```
+scripts/deploy.sh --help            -> EXIT=0
+scripts/deploy.sh --local --dry-run -> prints up.sh/bootstrap.sh/apply.sh/verify.sh, EXIT=0
+scripts/deploy.sh deploy@example.invalid --dry-run
+  rsync -az --exclude .git --exclude .env ... deploy@example.invalid:/opt/template-forum-nodebb/
+  ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new deploy@example.invalid "cd '...' && scripts/deploy.sh --local"
+scripts/deploy.sh --local           -> bootstrap: OK, apply: OK, verify: OK, deploy(local): OK -> http://localhost:4567
+```
+
+The remote leg is a CONTRACT plus dry-run only: no external SSH host is
+available, so no remote deployment is claimed.

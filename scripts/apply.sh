@@ -32,6 +32,14 @@ done
 log "building assets"
 compose exec -T nodebb ./nodebb build --config=/opt/config/config.json
 
+# `./nodebb activate` documents itself as applying "for the next startup of
+# NodeBB", so the running server still serves the previous theme/plugins. Restart
+# the container (SAME container, not a recreate: it keeps the npm-installed
+# packages) so the newly activated set actually serves the live site.
+log "restarting nodebb so the activated plugins/themes load"
+compose restart nodebb
+wait_for_healthy nodebb 180 || { compose logs --tail=200 nodebb; die "nodebb did not become healthy after the apply restart"; }
+
 log "active plugins on the running forum:"
 compose exec -T nodebb ./nodebb plugins --config=/opt/config/config.json || true
 

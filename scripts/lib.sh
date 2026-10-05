@@ -208,6 +208,10 @@ mint_master_token() {
 # API_BODY_FILE. The master token requires `_uid` on every call.
 api() {
   local method="$1" path="$2" data="${3:-}" url token uid sep
+  # Resolve from the CURRENT RUNTIME_DIR: load_env can override it after
+  # lib.sh is sourced (a derived instance sets its own RUNTIME_DIR in .env),
+  # so the top-level assignment would otherwise point at the repo runtime/.
+  API_BODY_FILE="$RUNTIME_DIR/api-last-response.json"
   require_cmd curl
   require_cmd jq
   url="$(stack_url)"

@@ -69,6 +69,18 @@ WITHOUT editing the template. Three seams:
 
 A worked example lives in `docker-compose.override.yml.example`.
 
+**Two derived instances from one checkout.** A consuming project can run more
+than one instance of this template without a second checkout: each instance sets
+its own `COMPOSE_PROJECT_NAME`, `NODEBB_PORT`, `NODEBB_URL` and `RUNTIME_DIR` in
+its `.env`. `docker-compose.yml` mounts `${RUNTIME_DIR:-./runtime}/config` and
+`${RUNTIME_DIR:-./runtime}/mongo/mongodb-user-init.js`, so every instance keeps
+its own rendered `config.json` (otherwise two instances share `./runtime/config`
+and clobber each other's database config). The container listen port is pinned by
+the `PORT` env added in `docker-compose.yml`, so a public `NODEBB_URL` that
+carries a different port no longer moves the container listen port away from the
+published mapping and healthcheck. The live A/B proof (two themes, one checkout)
+is committed in `evidence/g10-live-gates.txt`.
+
 ## 4. Backup and restore
 
 NodeBB has NO backup CLI and NO ACP backup route in core. The official upgrade

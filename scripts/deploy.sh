@@ -72,16 +72,20 @@ stack_url() {
   printf 'http://%s:%s' "$bind" "${NODEBB_PORT:-4567}"
 }
 
-# True when the forum database already holds data (setup has run). Reads the
-# running mongo container; used to make the deploy idempotent.
+# True when the forum database is actually INSTALLED (setup has run). A started
+# but uninstalled NodeBB already creates the `objects`/`sessions` collections and
+# writes schemaLog rows, so counting collections wrongly reports "installed" and
+# skips setup. NodeBB's setup writes the `config` object (`_key: "config"`), so
+# that is the marker we test. Reads the running mongo container; keeps the deploy
+# idempotent.
 nodebb_installed() {
   local count
   count="$(compose exec -T -e DBNAME="${NODEBB_DB_NAME:-nodebb}" mongo sh -c \
     'mongosh --quiet --host 127.0.0.1 --username "$MONGO_INITDB_ROOT_USERNAME" \
        --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin \
-       --eval "db.getSiblingDB(\"$DBNAME\").getCollectionNames().length"' 2>/dev/null \
+       --eval "db.getSiblingDB(\"$DBNAME\").objects.countDocuments({_key: \"config\"})"' 2>/dev/null \
     | tail -n1 | tr -dc '0-9')"
-  log "mongo collections in ${NODEBB_DB_NAME:-nodebb}: ${count:-0}"
+  log "nodebb config objects in ${NODEBB_DB_NAME:-nodebb}: ${count:-0}"
   [ "${count:-0}" -gt 0 ]
 }
 
