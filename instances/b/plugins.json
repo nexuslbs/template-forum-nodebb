@@ -1,0 +1,6 @@
+{
+  "plugins": [],
+  "themes": [
+    { "name": "nodebb-theme-persona", "version": "15.3.8", "compatibility": "^4.16.0" }
+  ]
+}

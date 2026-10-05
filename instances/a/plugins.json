@@ -1,0 +1,8 @@
+{
+  "plugins": [
+    { "name": "nodebb-plugin-hashtags", "version": "4.0.1", "compatibility": "^4.14.0" }
+  ],
+  "themes": [
+    { "name": "nodebb-theme-harmony", "version": "3.3.12", "compatibility": "^4.16.0" }
+  ]
+}
